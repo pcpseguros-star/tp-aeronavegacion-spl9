@@ -1,0 +1,585 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Mesa de Siniestros SPL-9</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: una sola página con dos modos. #proyector = escenas a pantalla completa manejadas por el grupo; sin hash = el celular de cada compañero (preguntas + calculadora). Motivo visual: la "faja de vuelo" (flight strip) de la torre de control. */
+:root {
+  --bg: #F2F5F7;
+  --surface: #FFFFFF;
+  --ink: #13202B;
+  --muted: #566878;
+  --line: #D3DCE3;
+  --accent: #D9821A;
+  --accent-ink: #8C4D05;
+  --accent-soft: #FBEBD5;
+  --ok: #1E7A4C;
+  --ok-soft: #DDF1E6;
+  --bad: #B03A2A;
+  --bad-soft: #F7E0DB;
+  --night: #0E1922;
+  --night-ink: #E8EEF2;
+  --night-muted: #9AACBA;
+  --qr-bg: #FFFFFF;
+  --qr-fg: #000000;
+  --f-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D141B; --surface: #16212B; --ink: #E5ECF1; --muted: #93A5B4; --line: #2A3947;
+    --accent: #F0A040; --accent-ink: #F3AE57; --accent-soft: #3A2A15;
+    --ok: #4CC38A; --ok-soft: #173327; --bad: #EF7B68; --bad-soft: #3A1E1A;
+    --night: #070C11; --night-ink: #E8EEF2; --night-muted: #93A5B4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D141B; --surface: #16212B; --ink: #E5ECF1; --muted: #93A5B4; --line: #2A3947;
+  --accent: #F0A040; --accent-ink: #F3AE57; --accent-soft: #3A2A15;
+  --ok: #4CC38A; --ok-soft: #173327; --bad: #EF7B68; --bad-soft: #3A1E1A;
+  --night: #070C11; --night-ink: #E8EEF2; --night-muted: #93A5B4;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; line-height: 1.05; text-wrap: balance; margin: 0; letter-spacing: 0.005em; }
+p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-ink); }
+.muted { color: var(--muted); }
+a { color: var(--accent-ink); }
+
+/* ---------- Faja de vuelo (motivo) ---------- */
+.strip { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; }
+.strip .cs { font-family: var(--f-display); font-size: 1.6em; font-weight: 700; }
+.strip .reg { font-family: var(--f-mono); color: var(--muted); font-size: 0.9em; }
+.strip .t { font-family: var(--f-mono); font-size: 1.1em; text-align: right; }
+.strip.hot { background: var(--accent-soft); border-color: var(--accent); }
+
+/* ---------- Modo celular ---------- */
+#movil { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 40px; display: grid; gap: 18px; }
+.m-head { display: grid; gap: 10px; }
+.m-head h1 { font-size: 2.3em; }
+.m-head .lead { color: var(--muted); }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.tabs button { border: 0; background: transparent; border-radius: 999px; padding: 10px; font-weight: 600; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.chips { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.chip { aspect-ratio: 1; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; font-family: var(--f-mono); font-size: 0.95em; display: grid; place-items: center; padding: 0; }
+.chip.cur { border-color: var(--ink); border-width: 2px; }
+.chip.ok { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.chip.bad { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.ctx { font-size: 0.95em; color: var(--muted); border-left: 3px solid var(--line); padding-left: 10px; }
+.q-title { font-family: var(--f-body); font-weight: 600; font-size: 1.15em; line-height: 1.35; }
+.opts { display: grid; gap: 8px; }
+.opt { display: grid; grid-template-columns: 2em 1fr; gap: 10px; align-items: center; text-align: left; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-height: 52px; }
+.opt .k { font-family: var(--f-mono); width: 2em; height: 2em; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); }
+.opt[disabled] { cursor: default; }
+.opt.is-ok { background: var(--ok-soft); border-color: var(--ok); }
+.opt.is-ok .k { background: var(--ok); color: var(--surface); border-color: var(--ok); }
+.opt.is-bad { background: var(--bad-soft); border-color: var(--bad); }
+.opt.is-bad .k { background: var(--bad); color: var(--surface); border-color: var(--bad); }
+.fb { display: grid; gap: 6px; border-radius: 8px; padding: 12px; }
+.fb.ok { background: var(--ok-soft); }
+.fb.bad { background: var(--bad-soft); }
+.fb strong { font-family: var(--f-display); font-size: 1.3em; letter-spacing: 0.02em; }
+.fb.ok strong { color: var(--ok); }
+.fb.bad strong { color: var(--bad); }
+.src { font-family: var(--f-mono); font-size: 0.8em; color: var(--muted); }
+.row-btns { display: flex; gap: 8px; justify-content: space-between; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 10px 16px; font-weight: 600; }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn[disabled] { opacity: 0.4; cursor: default; }
+.score { font-family: var(--f-mono); font-size: 0.9em; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.calc label { display: grid; gap: 6px; font-weight: 600; }
+.calc input { font: inherit; font-family: var(--f-mono); font-size: 1.2em; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); width: 100%; box-sizing: border-box; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets button { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 6px 12px; font-size: 0.9em; }
+.result { display: grid; gap: 4px; background: var(--accent-soft); border-radius: 8px; padding: 12px; }
+.result .big { font-family: var(--f-display); font-size: 2.4em; line-height: 1; color: var(--accent-ink); }
+.result .steps { font-family: var(--f-mono); font-size: 0.85em; color: var(--ink); overflow-wrap: anywhere; }
+.foot { font-size: 0.85em; color: var(--muted); display: grid; gap: 6px; }
+
+/* ---------- Modo proyector ---------- */
+#proyector { height: 100%; display: grid; grid-template-rows: 1fr auto; }
+#stage { min-height: 0; overflow: auto; padding-left: max(4vw, env(safe-area-inset-left, 0px)); padding-right: max(4vw, env(safe-area-inset-right, 0px)); padding-block: 3.5vh 2vh; display: grid; align-content: center; font-size: clamp(16px, 1.55vw, 30px); }
+#stage.dark { background: var(--night); color: var(--night-ink); }
+.scene { display: grid; gap: 1.2em; max-width: 1500px; width: 100%; margin: 0 auto; animation: in 0.35s ease-out; }
+@keyframes in { from { opacity: 0.4; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .scene { animation: none; } .timer i { transition: none !important; } }
+.scene h2 { font-size: 3.4em; }
+.scene .lead { font-size: 1.15em; max-width: 52ch; color: var(--muted); }
+.cover { grid-template-columns: 1.4fr 1fr; align-items: center; gap: 3em; }
+.cover h1 { font-size: 5.2em; }
+.cover .sub { font-size: 1.3em; color: var(--muted); max-width: 30ch; }
+.qr-box { background: var(--qr-bg); border-radius: 14px; padding: 1em; display: grid; gap: 0.6em; justify-items: center; color: #13202B; }
+.qr-box svg, .qr-box img { width: 100%; max-width: 13em; height: auto; display: block; }
+.qr-box .u { font-family: var(--f-mono); font-size: 0.7em; text-align: center; overflow-wrap: anywhere; }
+.strips { display: grid; gap: 0.5em; max-width: 34em; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 2em; align-items: start; }
+.formulario { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 0.9em; }
+.formulario th, .formulario td { border: 1px solid var(--line); padding: 0.45em 0.6em; text-align: left; vertical-align: top; }
+.formulario th { font-family: var(--f-mono); font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; }
+.formulario td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.tl { display: grid; gap: 0.55em; max-width: 60em; }
+.tl div { display: grid; grid-template-columns: 4.2em 1fr; gap: 1em; align-items: baseline; }
+.tl .h { font-family: var(--f-mono); font-size: 1.05em; color: var(--accent-ink); }
+.tl .warn .h, .tl .warn span { color: var(--bad); font-weight: 600; }
+.radio { font-family: var(--f-mono); }
+.q-scene .num { font-family: var(--f-display); font-size: 1.4em; color: var(--accent-ink); letter-spacing: 0.04em; }
+.q-scene h2 { font-family: var(--f-body); font-weight: 600; font-size: 2em; line-height: 1.25; max-width: 38ch; }
+.q-scene .opts { grid-template-columns: 1fr 1fr; gap: 0.6em; }
+.q-scene .opt { font-size: 1em; padding: 0.7em 0.9em; min-height: 0; cursor: default; }
+.q-scene .opt .k { width: 1.8em; height: 1.8em; }
+.timer { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.timer i { display: block; height: 100%; background: var(--accent); width: 100%; transition: width 1s linear; }
+.reveal { display: grid; gap: 0.4em; background: var(--ok-soft); border-radius: 10px; padding: 0.8em 1em; }
+.reveal strong { font-family: var(--f-display); font-size: 1.4em; color: var(--ok); }
+.impact { text-align: left; }
+.impact .when { font-family: var(--f-mono); color: var(--night-muted); font-size: 1.1em; }
+.impact .figs { display: flex; gap: 4em; flex-wrap: wrap; }
+.impact .fig b { display: block; font-family: var(--f-display); font-size: 7em; line-height: 0.95; color: var(--night-ink); }
+.impact .fig span { color: var(--night-muted); font-size: 1.1em; }
+.impact blockquote { margin: 0; max-width: 60ch; color: var(--night-ink); font-size: 1.05em; border-left: 3px solid var(--accent); padding-left: 1em; }
+.impact .silence { font-family: var(--f-mono); color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.85em; }
+.tramos { width: 100%; border-collapse: collapse; font-size: 0.95em; background: var(--surface); }
+.tramos td, .tramos th { border-bottom: 1px solid var(--line); padding: 0.45em 0.6em; text-align: left; }
+.tramos th { font-family: var(--f-mono); font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; }
+.tramos td { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.tramos tr.here td { background: var(--accent-soft); font-weight: 600; }
+.mini { display: grid; gap: 0.6em; }
+.mini .k { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0.8em 1em; }
+.mini .k b { font-family: var(--f-display); font-size: 1.8em; color: var(--accent-ink); }
+.board { width: 100%; border-collapse: collapse; background: var(--surface); }
+.board td, .board th { border-bottom: 1px solid var(--line); padding: 0.55em 0.7em; text-align: left; }
+.board th { font-family: var(--f-mono); font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 0.8em; padding: 0.15em 0.6em; border-radius: 99px; font-weight: 500; }
+.pill.si { background: var(--ok-soft); color: var(--ok); }
+.pill.no { background: var(--bad-soft); color: var(--bad); }
+.pill.nd { background: var(--accent-soft); color: var(--accent-ink); }
+.bar { display: flex; align-items: center; gap: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: var(--surface); flex-wrap: wrap; }
+.bar .grow { flex: 1; }
+.bar .pos { font-family: var(--f-mono); color: var(--muted); font-size: 0.9em; }
+.bar .hint { font-size: 0.8em; color: var(--muted); }
+.progress { height: 4px; background: var(--line); }
+.progress i { display: block; height: 100%; background: var(--accent); transition: width 0.3s; }
+
+@media (max-width: 820px) {
+  .cover, .two, .q-scene .opts { grid-template-columns: 1fr; }
+  .cover h1 { font-size: 3.4em; }
+  .impact .fig b { font-size: 4.5em; }
+}
+@media (max-width: 420px) {
+  .chips { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+</style>
+
+<div id="movil" hidden></div>
+<div id="proyector" hidden>
+  <div style="display:grid;grid-template-rows:auto 1fr;min-height:0">
+    <div class="progress"><i id="prog"></i></div>
+    <div id="stage" aria-live="polite"></div>
+  </div>
+  <div class="bar">
+    <button class="btn" id="p-prev" type="button">← Anterior</button>
+    <button class="btn primary" id="p-next" type="button">Siguiente →</button>
+    <button class="btn" id="p-reveal" type="button" hidden>Revelar respuesta (R)</button>
+    <span class="pos" id="p-pos"></span>
+    <span class="grow"></span>
+    <span class="hint">Teclas: ← → para avanzar · R para revelar</span>
+    <button class="btn" id="p-full" type="button">Pantalla completa</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  // Link público donde los compañeros abren el juego (GitHub Pages).
+  var PUBLIC_URL = "https://pcpseguros-star.github.io/tp-aeronavegacion-spl9/";
+
+  var fmt = function (n) { return n.toLocaleString("es-AR", { maximumFractionDigits: 2 }); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var LETTERS = ["A", "B", "C", "D"];
+
+  // ---------- Preguntas (mismo orden en proyector y celular) ----------
+  var Q = [
+    {
+      ctx: "Austral vendió una promoción de luna de miel a Bariloche y operó los vuelos con sus propios aviones y su propia tripulación.",
+      q: "¿Qué uso de la aeronave corresponde declarar?",
+      opts: ["Placer y privado", "Negocios", "Comercial", "Alquiler"],
+      ok: 2,
+      exp: "Es transporte pago de pasajeros con el avión siempre bajo control del asegurado. El uso Alquiler (que incluye el chárter) aplica cuando la operación NO está bajo control del asegurado, y acá Austral controlaba todo.",
+      src: "Apunte AERO 2026 · Uso de las aeronaves"
+    },
+    {
+      ctx: "Los vuelos SPL eran especiales: sin itinerario ni horario fijo. La ruta fue Aeroparque – Bariloche.",
+      q: "¿Qué tipo de vuelo es y qué norma rige?",
+      opts: ["Regular internacional · Convenio de Varsovia", "No regular de cabotaje · Código Aeronáutico", "Regular de cabotaje · Convenio de Chicago", "No regular internacional · Código Aeronáutico"],
+      ok: 1,
+      exp: "No regular porque no tenía sujeción a itinerario ni horario prefijado. De cabotaje porque une dos puntos dentro de la Argentina. Por eso rige el Código Aeronáutico (Ley 17.285) y no un convenio internacional.",
+      src: "Apunte AERO 2026 · Servicio regular / no regular · Vuelos de cabotaje"
+    },
+    {
+      ctx: "Antes del vuelo, el asegurador tiene el formulario tipo de suscripción con los datos del comandante.",
+      q: "¿Qué dato del formulario debería encender una alerta?",
+      opts: ["Edad: 39 años", "11.918 horas totales de vuelo", "Mayo de 1977: 20 días de inhabilitación por sobrevolar bajo mínimos en Paraná", "Licencia de transporte de línea aérea"],
+      ok: 2,
+      exp: "El formulario pide la siniestralidad de los últimos 5 años del asegurado y de sus pilotos. Seis meses antes del accidente, el comandante había insistido en aterrizar en condiciones adversas: el mismo patrón que en Bariloche.",
+      src: "Formulario tipo de suscripción · Informe final JIAAC"
+    },
+    {
+      ctx: "01:04. El avión está en la aproximación final a la pista de Bariloche cuando impacta contra el cerro.",
+      q: "Según las definiciones del apunte, ¿en qué situación estaba la aeronave?",
+      opts: ["Vuelo", "Carreteo", "Remolque", "Permanencia en tierra"],
+      ok: 0,
+      exp: "Está en vuelo desde que se aplica la fuerza motriz para despegar hasta que finaliza el recorrido de aterrizaje. En la aproximación final todavía no había aterrizado, así que responde la cobertura en vuelo.",
+      src: "Apunte AERO 2026 · Definiciones importantes"
+    },
+    {
+      ctx: "El avión cayó sobre la cima de un cerro deshabitado. Hubo 41 pasajeros fallecidos, 33 heridos, equipajes destruidos y 5 tripulantes fallecidos.",
+      q: "¿Cuál de las coberturas obligatorias NO se activó?",
+      opts: ["RC por daños a terceros en superficie (art. 160)", "RC por daños a terceros transportados (art. 144)", "RC por equipaje y mercancías (art. 145)", "Accidentes de la tripulación"],
+      ok: 0,
+      exp: "No hubo víctimas ni daños en tierra. Comparalo con el ejemplo del apunte: en el LAPA 3142 (1999) el avión cruzó la Costanera y mató al ocupante de un auto, una víctima en superficie.",
+      src: "Apunte AERO 2026 · Coberturas obligatorias · Art. 160 C.A."
+    },
+    {
+      ctx: "Murieron los 5 tripulantes: personal que cumplía funciones a bordo.",
+      q: "¿Qué cobertura los protege?",
+      opts: ["RC a terceros transportados (art. 144)", "Accidentes de la tripulación (ART / Accidentes Personales)", "RC a terceros en superficie (art. 160)", "Casco"],
+      ok: 1,
+      exp: "La tripulación no es pasajero: el apunte define pasajero como el tercero transportado que no cumple funciones a bordo. Corresponde la cobertura de accidentes de la tripulación, con la muerte como cobertura básica y sepelio o repatriación como adicionales.",
+      src: "Apunte AERO 2026 · Accidentes de la tripulación · Definiciones"
+    },
+    {
+      ctx: "El BAC 111-420EL tiene un peso máximo de despegue de unos 39.460 kg.",
+      q: "¿Qué tramo de la tabla del art. 160 corresponde?",
+      opts: ["Tramo 2: de 1.000 a 6.000 kg", "Tramo 3: de 6.000 a 20.000 kg", "Tramo 4: de 20.000 a 50.000 kg", "Tramo 5: más de 50.000 kg"],
+      ok: 2,
+      exp: "39.460 kg está entre 20.000 y 50.000 kg. Aunque se use el rango de pesos del modelo (36.287 a 40.153 kg), siempre cae en el tramo 4.",
+      src: "Art. 160 C.A. · Tabla peso / argentinos oro"
+    },
+    {
+      ctx: "Tramo 4: 25.000 Ao más 0,5 Ao por cada kilogramo que exceda los 20.000.",
+      q: "¿Cuál es el límite de RC a terceros en superficie para el LV-JGY?",
+      opts: ["25.000 Ao", "34.730 Ao", "39.460 Ao", "43.600 Ao"],
+      ok: 1,
+      exp: "39.460 − 20.000 = 19.460 kg. 19.460 × 0,5 = 9.730 Ao. 25.000 + 9.730 = 34.730 argentinos oro. En este siniestro no se usó, porque no hubo daños en superficie.",
+      src: "Art. 160 C.A. · Tramo 4"
+    },
+    {
+      ctx: "Viajaban 74 pasajeros: 41 fallecieron y 33 resultaron heridos.",
+      q: "¿Hasta cuánto responde el transportador por cada pasajero?",
+      opts: ["2 Ao por kilogramo", "1.000 Ao", "2.000 Ao", "No tiene límite"],
+      ok: 1,
+      exp: "El art. 144 limita la responsabilidad a 1.000 Ao por pasajero. Para los 74 pasajeros, el tope máximo es 74 × 1.000 = 74.000 Ao. Los 2 Ao por kg corresponden al equipaje (art. 145).",
+      src: "Art. 144 C.A. · Art. 145 C.A."
+    },
+    {
+      ctx: "Los daños al avión se estimaron en un 90%. Tenía 9 años y 21.272 horas de vuelo.",
+      q: "Si Austral tenía contratado el casco, ¿cómo se calcula la indemnización?",
+      opts: ["Valor a nuevo, sin ningún descuento", "Valor al tiempo del siniestro: valor a nuevo menos depreciación por uso, estado y antigüedad", "El precio que Austral pagó en 1968", "No se paga: el casco es obligatorio solo para pasajeros"],
+      ok: 1,
+      exp: "La cláusula 10 de las Condiciones Generales toma el valor de la aeronave al tiempo del siniestro: valor a nuevo, con las mejoras, menos la depreciación. Si el modelo ya no se fabrica, se usa el valor de venta de uno similar. El casco es una cobertura adicional, no obligatoria.",
+      src: "Apunte AERO 2026 · Monto de resarcimiento (Cl. 10) · Coberturas adicionales"
+    }
+  ];
+
+  // ---------- Art. 160 ----------
+  var TRAMOS = [
+    { n: 1, rango: "Hasta 1.000 kg", base: 2000, desde: 0, x: 0 },
+    { n: 2, rango: "1.000 a 6.000 kg", base: 2000, desde: 1000, x: 1.5 },
+    { n: 3, rango: "6.000 a 20.000 kg", base: 10400, desde: 6000, x: 1 },
+    { n: 4, rango: "20.000 a 50.000 kg", base: 25000, desde: 20000, x: 0.5 },
+    { n: 5, rango: "Más de 50.000 kg", base: 43600, desde: 50000, x: 0.37 }
+  ];
+  function art160(kg) {
+    var t = kg <= 1000 ? TRAMOS[0] : kg <= 6000 ? TRAMOS[1] : kg <= 20000 ? TRAMOS[2] : kg <= 50000 ? TRAMOS[3] : TRAMOS[4];
+    var exc = Math.max(0, kg - t.desde);
+    var extra = t.x ? Math.round(exc * t.x * 100) / 100 : 0;
+    return { t: t, exc: exc, extra: extra, total: Math.round((t.base + extra) * 100) / 100 };
+  }
+
+  // ---------- QR ----------
+  function qrMarkup(url) {
+    try {
+      if (typeof qrcode !== "function") return "";
+      var qr = qrcode(0, "M");
+      qr.addData(url);
+      qr.make();
+      return qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+    } catch (e) { return ""; }
+  }
+
+  // ======================= MODO CELULAR =======================
+  var mState = { tab: "q", i: 0, ans: {} }; // solo en memoria: no se guarda ni se envía nada
+  var mRoot = document.getElementById("movil");
+
+  function renderMovil() {
+    var aciertos = Object.keys(mState.ans).filter(function (k) { return mState.ans[k] === Q[k].ok; }).length;
+    var html = '<header class="m-head">' +
+      '<div class="strip hot"><span class="cs">SPL-9</span><span class="reg">LV-JGY · BAC 111 · AEP → BRC</span><span class="t">21/11/77</span></div>' +
+      '<h1>Mesa de siniestros</h1>' +
+      '<p class="lead">Respondé cada pregunta cuando aparezca en el proyector. La corrección es inmediata y tus respuestas no se guardan ni se envían.</p>' +
+      '</header>' +
+      '<div class="tabs" role="tablist">' +
+      '<button type="button" role="tab" id="tab-q" aria-selected="' + (mState.tab === "q") + '">Preguntas</button>' +
+      '<button type="button" role="tab" id="tab-c" aria-selected="' + (mState.tab === "c") + '">Calculadora</button>' +
+      '</div>';
+    if (mState.tab === "q") {
+      var i = mState.i, item = Q[i], a = mState.ans[i];
+      html += '<nav class="chips" aria-label="Ir a la pregunta">';
+      Q.forEach(function (_, k) {
+        var cls = "chip" + (k === i ? " cur" : "") + (mState.ans[k] === undefined ? "" : (mState.ans[k] === Q[k].ok ? " ok" : " bad"));
+        html += '<button type="button" class="' + cls + '" data-go="' + k + '" aria-label="Pregunta ' + (k + 1) + '">' + (k + 1) + '</button>';
+      });
+      html += '</nav><section class="card">' +
+        '<span class="eyebrow">Pregunta ' + (i + 1) + ' de ' + Q.length + '</span>' +
+        '<p class="ctx">' + esc(item.ctx) + '</p>' +
+        '<p class="q-title">' + esc(item.q) + '</p><div class="opts">';
+      item.opts.forEach(function (o, k) {
+        var cls = "opt";
+        if (a !== undefined) { if (k === item.ok) cls += " is-ok"; else if (k === a) cls += " is-bad"; }
+        html += '<button type="button" class="' + cls + '" data-opt="' + k + '"' + (a !== undefined ? " disabled" : "") + '><span class="k">' + LETTERS[k] + '</span><span>' + esc(o) + '</span></button>';
+      });
+      html += '</div>';
+      if (a !== undefined) {
+        var good = a === item.ok;
+        html += '<div class="fb ' + (good ? "ok" : "bad") + '"><strong>' + (good ? "¡Correcto!" : "La correcta es la " + LETTERS[item.ok]) + '</strong><p>' + esc(item.exp) + '</p><span class="src">' + esc(item.src) + '</span></div>';
+      }
+      html += '<div class="row-btns"><button type="button" class="btn" data-go="' + (i - 1) + '"' + (i === 0 ? " disabled" : "") + '>← Anterior</button>' +
+        '<button type="button" class="btn primary" data-go="' + (i + 1) + '"' + (i === Q.length - 1 ? " disabled" : "") + '>Siguiente →</button></div>' +
+        '</section><div class="score"><span>Respondidas: ' + Object.keys(mState.ans).length + ' de ' + Q.length + '</span><span>Aciertos: ' + aciertos + '</span></div>';
+    } else {
+      html += calcMarkup();
+    }
+    html += '<footer class="foot"><p>TP Aeronavegación · Otros Riesgos · IFTS N°1 · Prof. Mariela Roldán</p><p>Fuentes: apunte AERO 2026, formulario tipo de suscripción e informe final de la JIAAC (Disp. 129/78).</p></footer>';
+    mRoot.innerHTML = html;
+    if (mState.tab === "c") bindCalc();
+  }
+
+  function calcMarkup() {
+    return '<section class="card calc">' +
+      '<span class="eyebrow">Art. 160 · RC a terceros en superficie</span>' +
+      '<label for="calc-peso">Peso máximo de despegue (kg)<input id="calc-peso" type="number" inputmode="decimal" min="0" step="1" value="39460"></label>' +
+      '<div class="presets"><button type="button" data-peso="39460">BAC 111 LV-JGY · 39.460 kg</button><button type="button" data-peso="1633">Piper Lance LV-MJW · 1.633 kg</button></div>' +
+      '<div class="result" id="r-160" aria-live="polite"></div>' +
+      '</section>' +
+      '<section class="card calc">' +
+      '<span class="eyebrow">Art. 144 · Pasajeros transportados</span>' +
+      '<label for="calc-pax">Cantidad de pasajeros<input id="calc-pax" type="number" inputmode="numeric" min="0" step="1" value="74"></label>' +
+      '<div class="result" id="r-144" aria-live="polite"></div>' +
+      '</section>' +
+      '<section class="card calc">' +
+      '<span class="eyebrow">Art. 145 · Equipaje y mercancías</span>' +
+      '<label for="calc-kg">Peso bruto del equipaje (kg)<input id="calc-kg" type="number" inputmode="decimal" min="0" step="1" value="1500"></label>' +
+      '<div class="result" id="r-145" aria-live="polite"></div>' +
+      '<p class="muted" style="font-size:.85em">Salvo declaración especial con tasa suplementaria: en ese caso se paga lo declarado.</p>' +
+      '</section>';
+  }
+  function num(id) { var v = parseFloat(document.getElementById(id).value); return isFinite(v) && v >= 0 ? v : null; }
+  function updateCalc() {
+    var kg = num("calc-peso"), r = document.getElementById("r-160");
+    if (kg === null) { r.innerHTML = '<span class="muted">Ingresá un peso en kilogramos.</span>'; }
+    else {
+      var c = art160(kg), t = c.t;
+      var steps = t.x ? (fmt(kg) + " − " + fmt(t.desde) + " = " + fmt(c.exc) + " kg × " + fmt(t.x) + " = " + fmt(c.extra) + " Ao<br>" + fmt(t.base) + " + " + fmt(c.extra) + " = " + fmt(c.total) + " Ao") : "Hasta 1.000 kg el límite es fijo: 2.000 Ao";
+      r.innerHTML = '<span class="eyebrow">Tramo ' + t.n + ' · ' + t.rango + '</span><span class="big">' + fmt(c.total) + ' Ao</span><span class="steps">' + steps + '</span>';
+    }
+    var pax = num("calc-pax"), r2 = document.getElementById("r-144");
+    r2.innerHTML = pax === null ? '<span class="muted">Ingresá la cantidad de pasajeros.</span>' : '<span class="big">' + fmt(Math.floor(pax) * 1000) + ' Ao</span><span class="steps">' + fmt(Math.floor(pax)) + ' pasajeros × 1.000 Ao (tope por pasajero)</span>';
+    var eq = num("calc-kg"), r3 = document.getElementById("r-145");
+    r3.innerHTML = eq === null ? '<span class="muted">Ingresá el peso del equipaje.</span>' : '<span class="big">' + fmt(eq * 2) + ' Ao</span><span class="steps">' + fmt(eq) + ' kg × 2 Ao por kg</span>';
+  }
+  function bindCalc() {
+    ["calc-peso", "calc-pax", "calc-kg"].forEach(function (id) { document.getElementById(id).addEventListener("input", updateCalc); });
+    updateCalc();
+  }
+  mRoot.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || b.disabled) return;
+    if (b.id === "tab-q") { mState.tab = "q"; renderMovil(); return; }
+    if (b.id === "tab-c") { mState.tab = "c"; renderMovil(); return; }
+    if (b.hasAttribute("data-peso")) { document.getElementById("calc-peso").value = b.getAttribute("data-peso"); updateCalc(); return; }
+    if (b.hasAttribute("data-go")) { var g = +b.getAttribute("data-go"); if (g >= 0 && g < Q.length) { mState.i = g; renderMovil(); window.scrollTo(0, 0); } return; }
+    if (b.hasAttribute("data-opt") && mState.ans[mState.i] === undefined) { mState.ans[mState.i] = +b.getAttribute("data-opt"); renderMovil(); }
+  });
+
+  // ======================= MODO PROYECTOR =======================
+  var stage = document.getElementById("stage");
+  var qn = 0;
+  var SCENES = [
+    { type: "cover" },
+    { type: "austral" },
+    { type: "noche" },
+    { type: "q", i: qn++ },
+    { type: "q", i: qn++ },
+    { type: "suscripcion" },
+    { type: "q", i: qn++ },
+    { type: "aproximacion" },
+    { type: "q", i: qn++ },
+    { type: "impacto" },
+    { type: "q", i: qn++ },
+    { type: "q", i: qn++ },
+    { type: "limites" },
+    { type: "q", i: qn++ },
+    { type: "q", i: qn++ },
+    { type: "q", i: qn++ },
+    { type: "q", i: qn++ },
+    { type: "tablero" }
+  ];
+  var pState = { s: 0, revealed: false };
+  var timerId = null;
+
+  function sceneHTML(sc) {
+    switch (sc.type) {
+      case "cover":
+        var qr = qrMarkup(PUBLIC_URL);
+        return '<div class="scene cover"><div style="display:grid;gap:1em">' +
+          '<span class="eyebrow">TP Aeronavegación · Otros Riesgos · IFTS N°1</span>' +
+          '<h1>Mesa de siniestros: vuelo SPL-9</h1>' +
+          '<p class="sub">Bariloche, 21 de noviembre de 1977. Ustedes analizan el siniestro como lo haría un asegurador.</p>' +
+          '<p class="muted">Profesora Mariela Roldán</p></div>' +
+          '<div class="qr-box">' + (qr || '<p style="font-weight:600">Entrá desde el celular:</p>') + '<span class="u">' + esc(PUBLIC_URL.replace("https://", "")) + '</span><span style="font-size:.75em">Escaneá con la cámara del celular</span></div></div>';
+      case "austral":
+        return '<div class="scene"><span class="eyebrow">El asegurado</span><h2 style="font-size:2.6em">Austral en 1977: una aerolínea privada</h2>' +
+          '<div class="two"><div class="tl">' +
+          '<div><span class="h">1971</span><span>Nace Austral Líneas Aéreas S.A. por la fusión de dos empresas privadas, CATASACI y ALA. Compite con Aerolíneas Argentinas, la línea estatal.</span></div>' +
+          '<div class="warn"><span class="h">1977</span><span>Año del siniestro. Austral sigue siendo privada.</span></div>' +
+          '<div><span class="h">1980</span><span>El Estado la estatiza.</span></div>' +
+          '<div><span class="h">1987</span><span>Vuelve a ser privada (Cielos del Sur S.A.).</span></div>' +
+          '<div><span class="h">2020</span><span>Se fusiona con Aerolíneas Argentinas y deja de operar con su marca.</span></div>' +
+          '</div><div class="mini">' +
+          '<div class="k"><span class="eyebrow">Matrícula</span> <b>LV-JGY</b><p class="muted">LV = aeronave privada · LQ = aeronave pública (apunte AERO 2026)</p></div>' +
+          '<div class="k"><span class="eyebrow">Propietario y explotador</span><p style="font-weight:600">Austral Líneas Aéreas</p><p class="muted">BAC 111-420EL, fabricado en 1968</p></div>' +
+          '<div class="k"><span class="eyebrow">Actividad</span><p style="font-weight:600">Transporte aéreo comercial de pasajeros</p><p class="muted">El asegurado era una empresa privada, no el Estado.</p></div>' +
+          '</div></div></div>';
+      case "noche":
+        return '<div class="scene"><span class="eyebrow">20 de noviembre de 1977 · Aeroparque</span><h2>Tres aviones a Bariloche, una misma noche</h2>' +
+          '<p class="lead">Austral lanzó una promoción de luna de miel. La demanda fue tal que despachó tres BAC 111 con minutos de diferencia, en vuelos especiales (SPL).</p>' +
+          '<div class="strips">' +
+          '<div class="strip"><span class="cs">SPL-8</span><span class="reg">LV-LOX</span><span class="t">22:48</span></div>' +
+          '<div class="strip hot"><span class="cs">SPL-9</span><span class="reg">LV-JGY · debía esperar 20 min, salió a los 5</span><span class="t">22:53</span></div>' +
+          '<div class="strip"><span class="cs">SPL-10</span><span class="reg">LV-JNS</span><span class="t">23:19</span></div></div>' +
+          '<p class="muted">A bordo del SPL-9: 74 pasajeros, la mayoría parejas de recién casados, y 5 tripulantes.</p></div>';
+      case "suscripcion":
+        return '<div class="scene"><span class="eyebrow">Antes del vuelo · lo que ve el asegurador</span><h2>Formulario tipo de suscripción</h2>' +
+          '<div style="overflow-x:auto"><table class="formulario"><thead><tr><th>Marca</th><th>Modelo</th><th>Año</th><th>Serie</th><th>Matrícula</th><th>Peso máx. despegue</th><th>N° pax</th><th>N° trip.</th></tr></thead>' +
+          '<tbody><tr><td>BAC</td><td>111-420EL</td><td class="num">1968</td><td class="num">155</td><td class="num">LV-JGY</td><td class="num">~39.460 kg</td><td class="num">74</td><td class="num">5</td></tr></tbody></table></div>' +
+          '<div style="overflow-x:auto"><table class="formulario"><thead><tr><th>Función</th><th>Edad</th><th>Licencia</th><th>Horas totales</th><th>Horas en el tipo</th><th>Siniestralidad últimos 5 años</th></tr></thead>' +
+          '<tbody><tr><td>Comandante</td><td class="num">39</td><td>Transporte de línea aérea</td><td class="num">11.918</td><td class="num">3.587:55</td><td>08/05/1977: inhabilitación de 20 días (Paraná)</td></tr>' +
+          '<tr><td>Copiloto</td><td class="num">s/d</td><td>Transporte de línea aérea</td><td class="num">12.347</td><td class="num">1.691</td><td>—</td></tr></tbody></table></div>' +
+          '<p class="muted">Uso: Comercial · Base: Aeroparque · Límites: República Argentina</p></div>';
+      case "aproximacion":
+        return '<div class="scene"><span class="eyebrow">Frecuencia de la torre de Bariloche</span><h2>La aproximación</h2>' +
+          '<div class="tl radio">' +
+          '<div><span class="h">23:18</span><span>Pide nivel 290 en lugar de 350 por "problemas de presurización". Vuela más bajo y más rápido.</span></div>' +
+          '<div><span class="h">00:38</span><span>Primer contacto con la torre. Llega antes que el SPL-8 y obtiene el primer turno.</span></div>' +
+          '<div><span class="h">00:49</span><span>Pide una aproximación ILS directa. La aborta: "se me cortó el ILS". Pide la cabecera 10, con viento de cola.</span></div>' +
+          '<div><span class="h">01:03</span><span>Informa estar al través del VOR, sin la pista a la vista. El VOR se interrumpe entre las 01:03 y las 01:05.</span></div>' +
+          '<div class="warn"><span class="h">01:04</span><span>Desciende a 2.000 pies por minuto en lugar de 750.</span></div>' +
+          '</div></div>';
+      case "impacto":
+        return '<div class="scene impact"><span class="when">01:04 · Cerro Pichileufú, 21 km al este del aeropuerto de Bariloche</span>' +
+          '<div class="figs"><div class="fig"><b>46</b><span>fallecidos: 5 tripulantes y 41 pasajeros</span></div><div class="fig"><b>33</b><span>sobrevivientes, rescatados a las 10:15</span></div></div>' +
+          '<blockquote>"Error de procedimiento de la tripulación durante la aproximación final por abandonar el procedimiento ILS, influenciada fuertemente (pero en forma indebida) por la interrupción de la señal VOR y también, probablemente, por el estado anímico del Comandante." · Informe final JIAAC</blockquote>' +
+          '<p class="silence">Un minuto de silencio antes de seguir</p></div>';
+      case "limites":
+        var c = art160(39460);
+        var rows = TRAMOS.map(function (t) {
+          var f = t.x ? fmt(t.base) + " Ao + " + fmt(t.x) + " Ao por kg sobre " + fmt(t.desde) : fmt(t.base) + " Ao";
+          return '<tr' + (t.n === 4 ? ' class="here"' : "") + '><td>' + t.n + '</td><td>' + t.rango + '</td><td>' + f + '</td></tr>';
+        }).join("");
+        return '<div class="scene"><span class="eyebrow">Mesa de siniestros</span><h2>Los límites del Código Aeronáutico</h2>' +
+          '<div class="two"><div style="overflow-x:auto"><table class="tramos"><thead><tr><th>Tramo</th><th>Peso de la aeronave</th><th>Límite art. 160</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+          '<div class="mini"><div class="k"><span class="eyebrow">Art. 144 · por pasajero</span><br><b>1.000 Ao</b></div><div class="k"><span class="eyebrow">Art. 145 · equipaje y mercancías</span><br><b>2 Ao por kg</b></div><div class="k"><span class="eyebrow">LV-JGY</span><br><b class="mono" style="font-family:var(--f-display)">~' + fmt(39460) + ' kg</b></div></div></div></div>';
+      case "tablero":
+        return '<div class="scene"><span class="eyebrow">Liquidación del siniestro</span><h2>Tablero de coberturas del SPL-9</h2>' +
+          '<div style="overflow-x:auto"><table class="board"><thead><tr><th>Cobertura</th><th>¿Se activó?</th><th>Límite aplicado al caso</th></tr></thead><tbody>' +
+          '<tr><td>RC a terceros transportados (art. 144)</td><td><span class="pill si">Sí</span></td><td class="mono">74 × 1.000 = 74.000 Ao</td></tr>' +
+          '<tr><td>RC por equipaje y mercancías (art. 145)</td><td><span class="pill si">Sí</span></td><td class="mono">2 Ao por kg (sin datos de peso)</td></tr>' +
+          '<tr><td>Accidentes de la tripulación</td><td><span class="pill si">Sí</span></td><td>Muerte, 5 tripulantes</td></tr>' +
+          '<tr><td>RC a terceros en superficie (art. 160)</td><td><span class="pill no">No</span></td><td class="mono">34.730 Ao (sin daños en tierra)</td></tr>' +
+          '<tr><td>Casco (adicional)</td><td><span class="pill nd">Si estaba contratado</span></td><td>Pérdida total: daños del 90%</td></tr>' +
+          '</tbody></table></div>' +
+          '<p class="lead"><b style="color:var(--ink)">Cúmulo:</b> tres aviones del mismo asegurado, en la misma ruta y con minutos de diferencia, expuestos a la misma falla del VOR.</p>' +
+          '<p class="muted">En el celular, la pestaña Calculadora sirve para calcular los límites de la aeronave de cada caso.</p></div>';
+      case "q":
+        var item = Q[sc.i];
+        var opts = item.opts.map(function (o, k) {
+          var cls = "opt" + (pState.revealed ? (k === item.ok ? " is-ok" : "") : "");
+          return '<div class="' + cls + '"><span class="k">' + LETTERS[k] + '</span><span>' + esc(o) + '</span></div>';
+        }).join("");
+        return '<div class="scene q-scene"><span class="num">Pregunta ' + (sc.i + 1) + ' de ' + Q.length + '</span>' +
+          '<p class="lead">' + esc(item.ctx) + '</p><h2>' + esc(item.q) + '</h2><div class="opts">' + opts + '</div>' +
+          (pState.revealed ? '<div class="reveal"><strong>Respuesta ' + LETTERS[item.ok] + '</strong><p>' + esc(item.exp) + '</p><span class="src">' + esc(item.src) + '</span></div>' : '<div class="timer" aria-hidden="true"><i id="timer-bar"></i></div>') +
+          '</div>';
+    }
+    return "";
+  }
+
+  function renderProyector() {
+    clearInterval(timerId);
+    var sc = SCENES[pState.s];
+    stage.className = sc.type === "impacto" ? "dark" : "";
+    stage.innerHTML = sceneHTML(sc);
+    document.getElementById("p-pos").textContent = (pState.s + 1) + " / " + SCENES.length;
+    document.getElementById("prog").style.width = ((pState.s + 1) / SCENES.length * 100) + "%";
+    document.getElementById("p-prev").disabled = pState.s === 0;
+    document.getElementById("p-next").disabled = pState.s === SCENES.length - 1;
+    document.getElementById("p-reveal").hidden = !(sc.type === "q" && !pState.revealed);
+    if (sc.type === "q" && !pState.revealed) {
+      var left = 30, bar = document.getElementById("timer-bar");
+      timerId = setInterval(function () {
+        left -= 1;
+        if (bar) bar.style.width = Math.max(0, left / 30 * 100) + "%";
+        if (left <= 0) clearInterval(timerId);
+      }, 1000);
+    }
+  }
+  function go(d) {
+    var n = pState.s + d;
+    if (n < 0 || n >= SCENES.length) return;
+    pState.s = n; pState.revealed = false; renderProyector();
+  }
+  function reveal() {
+    if (SCENES[pState.s].type !== "q" || pState.revealed) return;
+    pState.revealed = true; renderProyector();
+  }
+  document.getElementById("p-prev").addEventListener("click", function () { go(-1); });
+  document.getElementById("p-next").addEventListener("click", function () { go(1); });
+  document.getElementById("p-reveal").addEventListener("click", reveal);
+  document.getElementById("p-full").addEventListener("click", function () {
+    var el = document.documentElement;
+    try {
+      if (document.fullscreenElement) { document.exitFullscreen().catch(function () {}); }
+      else if (el.requestFullscreen) { el.requestFullscreen().catch(function () {}); }
+    } catch (e) {}
+  });
+  document.addEventListener("keydown", function (e) {
+    if (document.getElementById("proyector").hidden) return;
+    if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); go(1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(-1); }
+    else if (e.key === "r" || e.key === "R") { reveal(); }
+  });
+
+  // ======================= Router =======================
+  function route() {
+    var proj = location.hash === "#proyector";
+    document.getElementById("proyector").hidden = !proj;
+    mRoot.hidden = proj;
+    if (proj) renderProyector(); else renderMovil();
+  }
+  window.addEventListener("hashchange", route);
+  route();
+})();
+</script>
+</body></html>
