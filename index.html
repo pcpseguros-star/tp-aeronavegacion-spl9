@@ -295,13 +295,13 @@ svg text { font-family: var(--f-body); }
       q: "¿Qué cobertura los protege?", opts: ["RC a pasajeros transportados (art. 144)", "Accidentes de la tripulación (ART / Accidentes Personales)", "RC a terceros en superficie (art. 160)", "Casco"], ok: 1,
       exp: "La tripulación no es pasajero: pasajero es el tercero transportado que no cumple funciones a bordo. Corresponde la cobertura de accidentes de la tripulación (art. 191 C.A.).",
       src: "Apunte AERO 2026 · Accidentes de la tripulación" },
-    { ctx: "El BAC 111-420EL tiene un peso máximo de despegue de unos 39.460 kg.",
+    { ctx: "El BAC 111-420EL tiene un peso máximo de despegue de 40.142 kg (88.500 lb).",
       q: "¿Qué tramo de la tabla del art. 160 corresponde?", opts: ["Tramo 2: de 1.000 a 6.000 kg", "Tramo 3: de 6.000 a 20.000 kg", "Tramo 4: de 20.000 a 50.000 kg", "Tramo 5: más de 50.000 kg"], ok: 2,
-      exp: "39.460 kg está entre 20.000 y 50.000 kg. Aunque se use el rango de pesos del modelo (36.287 a 40.153 kg), siempre cae en el tramo 4.",
+      exp: "40.142 kg está entre 20.000 y 50.000 kg. Aunque se use el rango de pesos del modelo (36.287 a 40.142 kg), siempre cae en el tramo 4.",
       src: "Art. 160 C.A. · Tabla peso / argentinos oro" },
     { ctx: "Tramo 4: 25.000 Ao más 0,5 Ao por cada kilogramo que exceda los 20.000.",
-      q: "¿Cuál es el límite de RC a terceros en superficie para el LV-JGY?", opts: ["25.000 Ao", "34.730 Ao", "39.460 Ao", "43.600 Ao"], ok: 1,
-      exp: "39.460 − 20.000 = 19.460 kg × 0,5 = 9.730 Ao. 25.000 + 9.730 = 34.730 argentinos oro. En este siniestro no se usó: no hubo daños en superficie.",
+      q: "¿Cuál es el límite de RC a terceros en superficie para el LV-JGY?", opts: ["25.000 Ao", "35.071 Ao", "40.142 Ao", "43.600 Ao"], ok: 1,
+      exp: "40.142 − 20.000 = 20.142 kg × 0,5 = 10.071 Ao. 25.000 + 10.071 = 35.071 argentinos oro. En este siniestro no se usó: no hubo daños en superficie.",
       src: "Art. 160 C.A. · Tramo 4" },
     { ctx: "Viajaban 74 pasajeros: 41 fallecieron y 33 resultaron heridos.",
       q: "¿Hasta cuánto responde el transportador por cada pasajero?", opts: ["2 Ao por kilogramo", "1.000 Ao", "2.000 Ao", "No tiene límite"], ok: 1,
@@ -377,8 +377,8 @@ svg text { font-family: var(--f-body); }
   }
   function calcMarkup() {
     return '<section class="card calc"><span class="eyebrow">Art. 160 · RC a terceros en superficie</span>' +
-      '<label for="calc-peso">Peso máximo de despegue (kg)<input id="calc-peso" type="number" inputmode="decimal" min="0" step="1" value="39460"></label>' +
-      '<div class="presets"><button type="button" data-peso="39460">BAC 111 LV-JGY · 39.460 kg</button><button type="button" data-peso="1633">Piper Lance LV-MJW · 1.633 kg</button></div>' +
+      '<label for="calc-peso">Peso máximo de despegue (kg)<input id="calc-peso" type="number" inputmode="decimal" min="0" step="1" value="40142"></label>' +
+      '<div class="presets"><button type="button" data-peso="40142">BAC 111 LV-JGY · 40.142 kg</button><button type="button" data-peso="1633">Piper Lance LV-MJW · 1.633 kg</button></div>' +
       '<div class="result" id="r-160" aria-live="polite"></div></section>' +
       '<section class="card calc"><span class="eyebrow">Art. 144 · Pasajeros transportados</span>' +
       '<label for="calc-pax">Cantidad de pasajeros<input id="calc-pax" type="number" inputmode="numeric" min="0" step="1" value="74"></label>' +
@@ -515,7 +515,7 @@ svg text { font-family: var(--f-body); }
       case "formulario":
         return '<div class="scene">' + head(sc, "3 · Encuadre y suscripción", "El formulario que vería el <em>suscriptor</em>") +
           '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Marca</th><th>Modelo</th><th>Año</th><th>Serie</th><th>Matrícula</th><th>Peso máx. despegue</th><th>Valor casco</th><th>Pax</th><th>Trip.</th></tr></thead>' +
-          '<tbody><tr><td>BAC</td><td>111-420EL</td><td class="n">1968</td><td class="n">155</td><td class="n">LV-JGY</td><td class="n">~39.460 kg</td><td>Sin dato público</td><td class="n">74</td><td class="n">5</td></tr></tbody></table></div>' +
+          '<tbody><tr><td>BAC</td><td>111-420EL</td><td class="n">1968</td><td class="n">155</td><td class="n">LV-JGY</td><td class="n">40.142 kg<br><small>(88.500 lb, valor del modelo; el informe JIAAC no lo informa)</small></td><td>Sin dato público</td><td class="n">74</td><td class="n">5</td></tr></tbody></table></div>' +
           '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Función</th><th>Edad</th><th>Licencia</th><th>Horas totales</th><th>Horas en el tipo</th><th>Legajo</th></tr></thead>' +
           '<tbody><tr><td>Comandante</td><td class="n">39</td><td>Transporte de Línea Aérea</td><td class="n">11.918</td><td class="n">3.587:55</td><td class="warn">Sanciones previas ⚠</td></tr>' +
           '<tr><td>Copiloto</td><td class="n">s/d</td><td>Transporte de Línea Aérea</td><td class="n">12.347</td><td class="n">1.691:00</td><td>Sin observaciones</td></tr></tbody></table></div>' +
@@ -533,17 +533,17 @@ svg text { font-family: var(--f-body); }
           '<tr><td>RC a pasajeros transportados (art. 144)</td><td><span class="pill si">Sí</span></td><td class="n">1.000 Ao por pasajero · 74.000 Ao</td></tr>' +
           '<tr><td>RC por equipajes y mercancías (art. 145)</td><td><span class="pill si">Sí</span></td><td class="n">2 Ao por kg despachado</td></tr>' +
           '<tr><td>Accidentes de la tripulación</td><td><span class="pill si">Sí</span></td><td>Fallecimiento de los 5 tripulantes</td></tr>' +
-          '<tr><td>RC a terceros en superficie (art. 160)</td><td><span class="pill no">No</span></td><td class="n">34.730 Ao (cálculo teórico)</td></tr></tbody></table></div>' +
+          '<tr><td>RC a terceros en superficie (art. 160)</td><td><span class="pill no">No</span></td><td class="n">35.071 Ao (cálculo teórico)</td></tr></tbody></table></div>' +
           '<p class="lead">Es el Título X del Código Aeronáutico: todo explotador aéreo debe tener estas cuatro coberturas vigentes.</p></div>';
       case "art160":
-        var c = art160(39460);
+        var c = art160(40142);
         var rows = TRAMOS.map(function (t) {
           var f = t.x ? fmt(t.base) + " Ao + " + fmt(t.x) + " Ao/kg sobre " + fmt(t.desde) : fmt(t.base) + " Ao";
           return '<tr' + (t.n === 4 ? ' class="here"' : "") + '><td class="n">' + t.n + '</td><td>' + t.rango + '</td><td class="n">' + f + '</td></tr>';
         }).join("");
         return '<div class="scene">' + head(sc, "4 · Coberturas obligatorias", "Terceros en superficie: <em>no se usó</em>") +
           '<div class="grid2"><table class="tbl"><thead><tr><th>Tramo</th><th>Peso</th><th>Límite art. 160</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-          '<div style="display:grid;gap:.8em"><div class="calc-box"><span>39.460 − 20.000 = ' + fmt(c.exc) + ' kg</span><span>' + fmt(c.exc) + ' × 0,5 = ' + fmt(c.extra) + ' Ao</span><span>25.000 + ' + fmt(c.extra) + ' =</span><span class="res">' + fmt(c.total) + ' Ao</span></div>' +
+          '<div style="display:grid;gap:.8em"><div class="calc-box"><span>Peso máx. de despegue BAC 111-420: 40.142 kg (88.500 lb)</span><span>40.142 − 20.000 = ' + fmt(c.exc) + ' kg</span><span>' + fmt(c.exc) + ' × 0,5 = ' + fmt(c.extra) + ' Ao</span><span>25.000 + ' + fmt(c.extra) + ' =</span><span class="res">' + fmt(c.total) + ' Ao</span></div>' +
           '<div class="tile green"><span class="t">¿Por qué no se activó?</span><p>Cayó en la ladera deshabitada del cerro: no hubo personas ni bienes dañados en tierra.</p></div>' +
           '<div class="tile"><span class="t">Contraste: LAPA 3142 (1999)</span><p>El avión salió de la pista e impactó vehículos en la Costanera: ahí sí hubo terceros en superficie.</p></div></div></div></div>';
       case "art144":
